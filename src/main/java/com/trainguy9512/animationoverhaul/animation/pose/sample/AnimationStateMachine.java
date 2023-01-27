@@ -1,6 +1,7 @@
 package com.trainguy9512.animationoverhaul.animation.pose.sample;
 
 import com.google.common.collect.Maps;
+import com.sun.jdi.Method;
 import com.trainguy9512.animationoverhaul.AnimationOverhaulMain;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
@@ -14,8 +15,9 @@ import java.util.*;
 public class AnimationStateMachine extends TimeBasedAnimationState {
 
     private final HashMap<String, State> statesHashMap = Maps.newHashMap();
-    private final ArrayList<String> activeStates = new ArrayList<String>();
+    private final ArrayList<String> activeStates = new ArrayList<>();
 
+    private ArrayList<Method> conditions = new ArrayList<>();
     //private int timeElapsedInState = 0;
 
     private AnimationStateMachine(String identifier){
@@ -153,15 +155,16 @@ public class AnimationStateMachine extends TimeBasedAnimationState {
         return this.addStateTransition(identifier, origin, desination, transitionTime, Easing.Linear.linear(), 50);
     }
 
-    public AnimationStateMachine setTransitionCondition(String transitionIdentifier, boolean condition){
+    public AnimationStateMachine setTransitionCondition(String transitionIdentifier, Method condition){
         if(this.getAllTransitions().contains(transitionIdentifier)){
             if(this.containsStateTransition(transitionIdentifier)){
-                StateTransition stateTransition = this.getStateTransition(transitionIdentifier);
+                conditions.add(condition);
+                /*StateTransition stateTransition = this.getStateTransition(transitionIdentifier);
                 if(stateTransition != null){
                     stateTransition.setCondition(condition);
                 } else {
                     AnimationOverhaulMain.LOGGER.error("State transition {} still returned null. ???", transitionIdentifier);
-                }
+                }*/
             }
         } else {
             AnimationOverhaulMain.LOGGER.error("Cannot set state transition condition, transition identifier {} not found in state machine {}", transitionIdentifier, this.getIdentifier());
