@@ -23,7 +23,9 @@ public class BakedAnimationPose {
     }
 
     public AnimationPose getBlendedPose(float partialTicks){
-        return AnimationPose.blendLinear(this.poseOld, this.pose, 1 - partialTicks);
+        // uncomment this for debugging
+        //partialTicks = 0;
+        return this.poseOld.blendLinear(this.pose, partialTicks);
     }
 
     public void bakeToModelParts(ModelPart rootModelPart, float partialTicks){

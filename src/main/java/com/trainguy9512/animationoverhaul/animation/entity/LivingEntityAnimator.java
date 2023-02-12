@@ -5,6 +5,7 @@ import com.trainguy9512.animationoverhaul.access.ModelAccess;
 import com.trainguy9512.animationoverhaul.animation.AnimatorDispatcher;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
 import com.trainguy9512.animationoverhaul.animation.pose.BakedAnimationPose;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
 import com.trainguy9512.animationoverhaul.util.data.AnimationDataContainer;
 import net.minecraft.client.model.EntityModel;
@@ -13,7 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Random;
 
-public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends EntityModel<T>> {
+public abstract class LivingEntityAnimator<T extends LivingEntity, M extends EntityModel<T>> {
 
     protected T livingEntity;
     protected M entityModel;
@@ -22,7 +23,7 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
     protected AnimationDataContainer entityAnimationData;
     protected final Random random = new Random();
 
-    public LivingEntityPartAnimator(){
+    public LivingEntityAnimator(){
         this.locatorSkeleton = new LocatorSkeleton();
         buildRig(this.locatorSkeleton);
     }
@@ -50,14 +51,56 @@ public abstract class LivingEntityPartAnimator<T extends LivingEntity, M extends
     protected void finalizeModelParts(ModelPart rootModelPart){
     }
 
+    protected AnimationDataContainer getEntityAnimationData(){
+        return this.entityAnimationData;
+    }
+
+    protected <D> AnimationDataContainer.Variable<D> getEntityAnimationVariableObject(AnimationDataContainer.DataKey<D> dataKey){
+        return getEntityAnimationData().get(dataKey);
+    }
+
+    protected <D> D getEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey){
+        return getEntityAnimationVariableObject(dataKey).get();
+    }
+
+    protected <D> void setEntityAnimationVariable(AnimationDataContainer.DataKey<D> dataKey, D value){
+        getEntityAnimationData().setValue(dataKey, value);
+    }
+
+    protected AnimationPose sampleAnimationState(SampleableAnimationState sampleableAnimationState){
+        return getEntityAnimationData().sampleAnimationState(this.locatorSkeleton, sampleableAnimationState);
+    }
+
+    protected AnimationPose sampleAnimationStateFromInputPose(SampleableAnimationState sampleableAnimationState, AnimationPose inputPose){
+        return getEntityAnimationData().sampleAnimationStateFromInputPose(inputPose, this.locatorSkeleton, sampleableAnimationState);
+    }
+
+
+    protected AnimationSequencePlayer getAnimationSequencePlayer(AnimationSequencePlayer animationSequencePlayer){
+        return getEntityAnimationData().getAnimationSequencePlayer(animationSequencePlayer);
+    }
+
+    protected AnimationBlendSpacePlayer getAnimationBlendSpacePlayer(AnimationBlendSpacePlayer animationBlendSpacePlayer){
+        return getEntityAnimationData().getAnimationBlendSpacePlayer(animationBlendSpacePlayer);
+    }
+
+    protected AnimationStateMachine getAnimationStateMachine(AnimationStateMachine animationStateMachine){
+        return getEntityAnimationData().getAnimationStateMachine(animationStateMachine);
+    }
+
+    protected AnimationMontageTrack getAnimationMontageTrack(AnimationMontageTrack animationMontageTrack){
+        return getEntityAnimationData().getAnimationMontageTrack(animationMontageTrack);
+    }
+
     public void tick(LivingEntity livingEntity){
         BakedAnimationPose bakedPose = AnimatorDispatcher.INSTANCE.getBakedPose(livingEntity.getUUID());
         AnimationDataContainer entityAnimationData = AnimatorDispatcher.INSTANCE.getEntityAnimationData(livingEntity.getUUID());
         this.entityAnimationData = entityAnimationData;
-        this.livingEntity = (T)livingEntity;
+        this.setEntity((T)livingEntity);
+        //this.livingEntity = (T)livingEntity;
 
         this.tick(livingEntity, entityAnimationData);
-        this.entityAnimationData.tickAnimationStates();
+        getEntityAnimationData().tickAnimationStates();
 
         if(bakedPose == null){
             bakedPose = new BakedAnimationPose();

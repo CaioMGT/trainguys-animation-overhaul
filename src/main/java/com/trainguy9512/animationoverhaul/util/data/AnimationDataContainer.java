@@ -2,12 +2,10 @@ package com.trainguy9512.animationoverhaul.util.data;
 
 import com.google.common.collect.Maps;
 import com.trainguy9512.animationoverhaul.animation.pose.AnimationPose;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationBlendSpacePlayer;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationSequencePlayer;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.AnimationStateMachine;
+import com.trainguy9512.animationoverhaul.animation.pose.sample.*;
 import com.trainguy9512.animationoverhaul.util.animation.LocatorSkeleton;
-import com.trainguy9512.animationoverhaul.animation.pose.sample.SampleableAnimationState;
 import com.trainguy9512.animationoverhaul.util.time.Easing;
+import com.trainguy9512.animationoverhaul.util.time.TickTimeUtils;
 import net.minecraft.util.Mth;
 
 import java.util.*;
@@ -53,6 +51,10 @@ public class AnimationDataContainer {
         return (AnimationStateMachine) getAnimationState(animationStateMachine);
     }
 
+    public AnimationMontageTrack getAnimationMontageTrack(AnimationMontageTrack animationMontageTrack){
+        return (AnimationMontageTrack) getAnimationState(animationMontageTrack);
+    }
+
     public AnimationPose sampleAnimationState(LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){
         for(String identifier : this.entitySampleableAnimationStates.keySet()){
             if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
@@ -61,6 +63,16 @@ public class AnimationDataContainer {
         }
         this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
         return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sample(locatorSkeleton, cachedPoseContainer);
+    }
+
+    public AnimationPose sampleAnimationStateFromInputPose(AnimationPose inputPose, LocatorSkeleton locatorSkeleton, SampleableAnimationState sampleableAnimationState){
+        for(String identifier : this.entitySampleableAnimationStates.keySet()){
+            if (Objects.equals(sampleableAnimationState.getIdentifier(), identifier)){
+                return this.entitySampleableAnimationStates.get(identifier).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
+            }
+        }
+        this.entitySampleableAnimationStates.put(sampleableAnimationState.getIdentifier(), sampleableAnimationState);
+        return (this.entitySampleableAnimationStates.get(sampleableAnimationState.getIdentifier())).sampleFromInputPose(inputPose, locatorSkeleton, cachedPoseContainer);
     }
 
     public void saveCachedPose(String identifier, AnimationPose animationPose){
@@ -166,6 +178,8 @@ public class AnimationDataContainer {
      * @param ticksToDecrement  Time in ticks to decrement from 1 to 0
      */
     public void incrementInTicksFromCondition(DataKey<Float> dataKey, boolean condition, float ticksToIncrement, float ticksToDecrement){
+        ticksToIncrement = Math.max(1, ticksToIncrement);
+        ticksToDecrement = Math.max(1, ticksToDecrement);
         Variable<Float> data = this.get(dataKey);
         data.set(Mth.clamp((data.get()) + (condition ? 1/ticksToIncrement : -1/ticksToDecrement), 0, 1));
     }
@@ -179,7 +193,7 @@ public class AnimationDataContainer {
      * @param framesToDecrement  Time in frames to decrement from 1 to 0
      */
     public void incrementInFramesFromCondition(DataKey<Float> dataKey, boolean condition, float framesToIncrement, float framesToDecrement){
-        this.incrementInTicksFromCondition(dataKey, condition, framesToIncrement / 1.2F, framesToDecrement / 1.2F);
+        this.incrementInTicksFromCondition(dataKey, condition, TickTimeUtils.ticksFromMayaFrames(framesToIncrement), TickTimeUtils.ticksFromMayaFrames(framesToDecrement));
     }
 
     /**
@@ -207,7 +221,7 @@ public class AnimationDataContainer {
      * @param framesToIncrement     Time in frames to increment from 0 to 1
      */
     public void incrementInFramesOrResetFromCondition(DataKey<Float> dataKey, boolean condition, float framesToIncrement){
-        this.incrementInTicksOrResetFromCondition(dataKey, condition, framesToIncrement / 1.2F);
+        this.incrementInTicksOrResetFromCondition(dataKey, condition, TickTimeUtils.ticksFromMayaFrames(framesToIncrement));
     }
 
     /**

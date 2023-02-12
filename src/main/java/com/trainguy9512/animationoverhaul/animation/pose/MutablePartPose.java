@@ -2,7 +2,9 @@ package com.trainguy9512.animationoverhaul.animation.pose;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
+import org.joml.Quaternionf;
 
 public class MutablePartPose {
     public float x = 0;
@@ -58,6 +60,17 @@ public class MutablePartPose {
         );
     }
 
+    public static MutablePartPose subtract(MutablePartPose partPoseA, MutablePartPose partPoseB){
+        return fromTranslationAndRotation(
+                partPoseA.x - partPoseB.x,
+                partPoseA.y - partPoseB.y,
+                partPoseA.z - partPoseB.z,
+                partPoseA.xRot - partPoseB.xRot,
+                partPoseA.yRot - partPoseB.yRot,
+                partPoseA.zRot - partPoseB.zRot
+        );
+    }
+
     public static MutablePartPose fromPartPose(PartPose partPose){
         return fromTranslationAndRotation(
                 partPose.x,
@@ -67,6 +80,10 @@ public class MutablePartPose {
                 partPose.yRot,
                 partPose.zRot
         );
+    }
+
+    public MutablePartPose getCopy(){
+        return MutablePartPose.fromPartPose(this.asPartPose());
     }
 
     public void translatePoseStack(PoseStack poseStack){
@@ -110,4 +127,19 @@ public class MutablePartPose {
         }
     }
 
+    public void transformPoseStack(PoseStack poseStack, float transformMultiplier){
+        poseStack.translate(this.x / transformMultiplier, this.y / transformMultiplier, this.z / transformMultiplier);
+        if (this.xRot != 0.0f || this.yRot != 0.0f || this.zRot != 0.0f) {
+            poseStack.mulPose(new Quaternionf().rotationZYX(this.zRot, this.yRot, this.xRot));
+        }
+    }
+
+    public void transformPoseStack(PoseStack poseStack){
+        this.transformPoseStack(poseStack, 16F);
+    }
+
+    public void transformModelPart(ModelPart modelPart){
+        modelPart.setPos(this.x, this.y, this.z);
+        modelPart.setRotation(this.xRot, this.yRot, this.zRot);
+    }
 }
